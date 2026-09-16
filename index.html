@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Campo de girasoles</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  #err-banner{
+    position:fixed; left:0; right:0; bottom:0; z-index:99;
+    background:#5c1f1f; color:#ffe2e2; font:13px/1.5 monospace;
+    padding:10px 14px; display:none; white-space:pre-wrap;
+  }
+</style>
+<script>
+  /* Diagnóstico visible: si algo falla, el error aparece en pantalla */
+  window.addEventListener('error', function(e){
+    var b = document.getElementById('err-banner');
+    b.style.display = 'block';
+    b.textContent += '⚠ ' + (e.message || e.type) +
+      (e.filename ? ' @ ' + e.filename.split('/').pop() + ':' + e.lineno : '') + '\n';
+  }, true);
+  window.addEventListener('unhandledrejection', function(e){
+    var b = document.getElementById('err-banner');
+    b.style.display = 'block';
+    b.textContent += '⚠ promesa: ' + (e.reason && e.reason.message || e.reason) + '\n';
+  });
+</script>
+</head>
+<body>
+<div id="err-banner"></div>
+
+<!-- Lienzo WebGL: toda la escena 3D vive aquí -->
+<canvas id="webgl-canvas"></canvas>
+
+<!-- ============ CAPA DE INTERFAZ (overlays) ============ -->
+<div id="ui">
+
+  <!-- Escena 1 — Intro -->
+  <section id="intro" class="overlay">
+    <div class="intro-copy">
+      <h1 id="intro-title">Un campo te espera</h1>
+      <p id="intro-subtitle">Presiona el botón y deja que la brisa mueva los girasoles.</p>
+    </div>
+    <button id="start-btn" class="start-btn" type="button">Ver el campo</button>
+  </section>
+
+  <!-- Escena 3 — Pista -->
+  <p id="hint" class="hint overlay" role="status" aria-live="polite">Creo que hay algo por aquí…</p>
+
+  <!-- Escena 5 — Mensaje final -->
+  <div id="final-card" class="overlay" role="dialog" aria-modal="true" aria-labelledby="final-title" hidden>
+    <div class="final-panel">
+      <h2 id="final-title">Para ti</h2>
+      <p id="final-message">Escribe aquí tu mensaje.</p>
+      <p id="final-signature">— Con cariño</p>
+      <button id="final-close" class="ghost-btn" type="button">Volver al campo</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Three.js (módulos) + GSAP -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="module" src="main.js"></script>
+
+</body>
+</html>

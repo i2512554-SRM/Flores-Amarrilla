@@ -1,0 +1,190 @@
+/* ================= styles.css — capa de interfaz sobre el canvas WebGL ================= */
+:root{
+  --petal:#ffc83d;
+  --petal-shadow:#e8a412;
+  --petal-tip:#ffe27a;
+  --cream:#fffdf6;
+  --ink:#1f2a1a;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+html, body{
+  height:100%;
+  width:100%;
+  overflow:hidden;
+  font-family:var(--font);
+  background:#7bc4ea;
+}
+
+/* ============ canvas 3D ============ */
+#webgl-canvas{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  display:block;
+  z-index:0;
+}
+
+/* ============ capa UI: sin eventos salvo elementos interactivos ============ */
+#ui{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  pointer-events:none;
+}
+#ui button{ pointer-events:auto; }
+
+.overlay{ position:absolute; inset:0; }
+
+/* ============ intro ============ */
+#intro{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(1.5rem, 6vw, 2.5rem);
+  text-align:center;
+  padding:6vh 1.5rem;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, #fff3c4 0%, transparent 55%),
+    linear-gradient(180deg, #4a9fd8 0%, #7bc4ea 55%, #cdeaf5 100%);
+}
+
+.intro-copy h1{
+  font-size:clamp(1.7rem, 6vw, 2.9rem);
+  font-weight:700;
+  color:#2c4a1e;
+  line-height:1.15;
+  letter-spacing:-0.01em;
+}
+.intro-copy p{
+  margin-top:0.6rem;
+  font-size:clamp(0.95rem, 3vw, 1.15rem);
+  color:#33501f;
+  max-width:32ch;
+  margin-inline:auto;
+  line-height:1.5;
+}
+
+.start-btn{
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:clamp(1rem, 3.4vw, 1.2rem);
+  font-weight:700;
+  color:#4a2e18;
+  background:linear-gradient(180deg, var(--petal-tip), var(--petal) 55%, var(--petal-shadow));
+  padding:0.95em 2.3em;
+  border-radius:999px;
+  box-shadow:0 2px 0 var(--petal-shadow), 0 10px 24px -8px rgba(74,46,24,0.45);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.start-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 2px 0 var(--petal-shadow), 0 14px 28px -8px rgba(74,46,24,0.5);
+}
+.start-btn:active{ transform:translateY(1px); }
+
+/* ============ pista de descubrimiento ============ */
+.hint{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding-bottom:14vh;
+  text-align:center;
+  font-size:clamp(0.95rem, 2.8vw, 1.15rem);
+  color:var(--cream);
+  text-shadow:0 1px 8px rgba(20,35,10,0.6);
+  opacity:0; /* la revela GSAP durante el viaje */
+}
+
+/* ============ tarjeta final ============ */
+#final-card{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  background:rgba(24,36,14,0.35);
+}
+#final-card[hidden]{ display:none; }
+
+.final-panel{
+  max-width:min(92vw, 34rem);
+  max-height:85vh;
+  max-height:85dvh;
+  overflow-y:auto;
+  text-align:center;
+  padding:clamp(1.6rem, 5vw, 2.8rem);
+  border-radius:22px;
+  background:linear-gradient(180deg, #fffdf6, #fdf3dd);
+  box-shadow:0 24px 60px -18px rgba(30,20,5,0.55), inset 0 1px 0 #ffffff;
+}
+.final-panel h2{
+  font-size:clamp(1.4rem, 4.5vw, 2rem);
+  color:#4a2e18;
+  margin-bottom:0.9rem;
+}
+.final-panel p{
+  color:#5a4a2c;
+  line-height:1.65;
+  font-size:clamp(0.98rem, 3vw, 1.1rem);
+  white-space:pre-line;
+}
+#final-signature{ margin-top:1.1rem; font-style:italic; color:#8a6a3a; }
+
+.ghost-btn{
+  margin-top:1.4rem;
+  font-family:inherit;
+  font-size:0.95rem;
+  font-weight:600;
+  color:#6b4423;
+  background:transparent;
+  border:2px solid #d9c49a;
+  border-radius:999px;
+  padding:0.6em 1.6em;
+  cursor:pointer;
+  transition:background .2s ease;
+}
+.ghost-btn:hover{ background:rgba(217,196,154,0.25); }
+
+/* ============ accesibilidad y teclado ============ */
+/* Todos los interactivos del #ui: objetivo táctil mínimo y foco visible */
+#ui button{
+  min-width:44px;
+  min-height:44px;
+  touch-action:manipulation;   /* evita el delay/zoom en doble toque móvil */
+}
+:focus-visible{
+  outline:3px solid var(--petal-tip);
+  outline-offset:3px;
+  border-radius:6px;
+}
+.start-btn:focus-visible{ outline-color:#2c4a1e; }
+.ghost-btn:focus-visible{ outline-color:#8a6a3a; }
+/* el foco nunca se pierde en elementos ocultos por opacidad */
+#final-card:not(.show){ visibility:hidden; }
+#final-card.show{ visibility:visible; }
+
+/* el hint no intercepta toques en el campo */
+.hint{ pointer-events:none; }
+
+@media (max-height: 480px){
+  #intro{ gap:0.9rem; padding:2vh 1.5rem; }
+  .intro-copy h1{ font-size:1.4rem; }
+  .intro-copy p{ font-size:0.9rem; }
+  .hint{ padding-bottom:20vh; }
+}
+
+/* pantallas estrechas: el panel final respeta safe-area */
+@media (max-width: 430px){
+  .final-panel{ border-radius:18px; }
+  #final-card{ padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition-duration:0.01s !important; }
+}

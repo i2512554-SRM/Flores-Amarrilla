@@ -1,0 +1,71 @@
+/* ================= animations.css — keyframes ================= */
+
+@keyframes gentle-spin{
+  0%,100%{ transform: rotate(-4deg); }
+  50%{ transform: rotate(4deg); }
+}
+
+@keyframes drift{
+  0%   { transform: translateX(-10vw) translateY(0); opacity:0; }
+  8%   { opacity: var(--pop, 0.6); }
+  92%  { opacity: var(--pop, 0.6); }
+  100% { transform: translateX(110vw) translateY(var(--drift-y, -12px)); opacity:0; }
+}
+
+@keyframes cloud-float{
+  from{ transform: translateX(-30vw); }
+  to{ transform: translateX(130vw); }
+}
+
+@keyframes ground-flow{
+  from{ background-position: 0 0, 0 23px; }
+  to{ background-position: 0 46px, 0 69px; }
+}
+
+@keyframes approach{
+  0%   { transform: translate(-50%,0) translateX(var(--lane-x)) translateY(var(--ground-y)) translateZ(-1300px); opacity:0; }
+  6%   { opacity:1; }
+  88%  { opacity:1; }
+  100% { transform: translate(-50%,0) translateX(var(--lane-x)) translateY(var(--ground-y)) translateZ(300px); opacity:0; }
+}
+
+@keyframes sway{
+  0%   { transform: translateX(-50%) rotate(calc(-1 * var(--sway, 5deg))); }
+  50%  { transform: translateX(-50%) rotate(var(--sway, 5deg)); }
+  100% { transform: translateX(-50%) rotate(calc(-1 * var(--sway, 5deg))); }
+}
+
+@keyframes sway-plain{
+  0%   { transform: rotate(calc(-1 * var(--sway, 4deg))); }
+  50%  { transform: rotate(var(--sway, 4deg)); }
+  100% { transform: rotate(calc(-1 * var(--sway, 4deg))); }
+}
+
+@keyframes heartbeat{
+  0%,100%{ transform:scale(1); }
+  15%{ transform:scale(1.08); }
+  30%{ transform:scale(0.97); }
+  45%{ transform:scale(1.05); }
+  60%{ transform:scale(1); }
+}
+
+/* reacción al tocar una flor */
+@keyframes tap-bounce{
+  0%   { transform: rotate(0deg) scale(1); }
+  30%  { transform: rotate(var(--tap-dir, 6deg)) scale(1.06); }
+  60%  { transform: rotate(calc(var(--tap-dir, 6deg) * -0.5)) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+.flower-tilt.tapped{ animation: tap-bounce .7s ease-out; }
+
+@keyframes special-pulse{
+  0%,100%{ transform:translateX(-50%) scale(0.92); opacity:0.65; }
+  50%{ transform:translateX(-50%) scale(1.12); opacity:1; }
+}
+
+/* vaivén propio de la flor especial: más lento, con leve cabeceo */
+@keyframes special-sway{
+  0%   { transform: rotate(-2.4deg) }
+  50%  { transform: rotate(2.4deg) }
+  100% { transform: rotate(-2.4deg) }
+}

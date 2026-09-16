@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Campo de girasoles</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/intro.css">
+<link rel="stylesheet" href="css/field.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ ESCENA 1: INTRO ============ -->
+  <section id="start-screen" aria-labelledby="intro-title">
+    <svg class="mini-sunflower" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+      <g id="mini-sun-petals"></g>
+      <circle cx="60" cy="60" r="20" fill="#6b4423"/>
+      <circle cx="60" cy="60" r="20" fill="url(#seedGrad)"/>
+    </svg>
+
+    <div class="intro-copy">
+      <h1 id="intro-title"></h1>
+      <p id="intro-subtitle"></p>
+    </div>
+
+    <button id="start-btn" class="start-btn" type="button"></button>
+  </section>
+
+  <!-- ============ ESCENA PRINCIPAL ============ -->
+  <div id="scene" aria-hidden="true">
+    <div id="sky" aria-hidden="true">
+      <div class="sun-glow"></div>
+      <div class="wind-layer" id="wind-layer"></div>
+      <div id="clouds-layer"></div>
+    </div>
+
+    <div id="field" aria-hidden="true">
+      <div class="ground-base"></div>
+      <div class="ground-plane"></div>
+      <div class="ground-path"></div>
+      <div class="ground-horizon-fade"></div>
+    </div>
+
+    <div id="tunnel-scene">
+      <div id="flower-tunnel" aria-hidden="true"></div>
+
+      <div class="altar-group" id="altar">
+        <div class="bouquet bouquet-left" id="bouquet-left" aria-hidden="true"></div>
+        <div class="altar-center">
+          <!-- El centro evoluciona: vacío → flor especial → corazón -->
+          <svg class="big-heart" id="big-heart" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path d="M50 88 C 46 84, 6 54, 6 28 C 6 12, 18 2, 32 2 C 41 2, 47 7, 50 14 C 53 7, 59 2, 68 2 C 82 2, 94 12, 94 28 C 94 54, 54 84, 50 88 Z" fill="url(#heartGrad)"/>
+          </svg>
+          <button id="special-flower" class="special-flower" type="button" hidden
+                  aria-label="Una flor especial brilla en el centro del camino. Acércate."></button>
+          <div class="pedestal" aria-hidden="true"></div>
+        </div>
+        <div class="bouquet bouquet-right" id="bouquet-right" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- Transición de ambiente día → atardecer -->
+    <div id="ambient-overlay" aria-hidden="true"></div>
+
+    <!-- Texto de descubrimiento -->
+    <p id="hint" class="hint" role="status" aria-live="polite"></p>
+
+    <!-- Capa para partículas de interacción -->
+    <div id="fx-layer" aria-hidden="true"></div>
+
+    <!-- ============ ESCENA 5: MENSAJE FINAL ============ -->
+    <div id="final-card" role="dialog" aria-modal="true" aria-labelledby="final-title" hidden>
+      <div class="final-panel">
+        <svg class="final-flower" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+          <g id="final-sun-petals"></g>
+          <circle cx="60" cy="60" r="20" fill="#6b4423"/>
+          <circle cx="60" cy="60" r="20" fill="url(#seedGrad)"/>
+        </svg>
+        <h2 id="final-title"></h2>
+        <p id="final-message"></p>
+        <p id="final-signature"></p>
+        <button id="final-close" class="ghost-btn" type="button">Volver al campo</button>
+      </div>
+    </div>
+
+    <!-- ============ CONTROLES UI ============ -->
+    <div id="ui-controls">
+      <div class="audio-controls" id="audio-controls" hidden>
+        <button id="audio-toggle" class="icon-btn" type="button" aria-label="Reproducir música" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-play"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-pause"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+        </button>
+        <button id="audio-mute" class="icon-btn" type="button" aria-label="Silenciar" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-vol"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon-muted"><path d="M3 9v6h4l5 5V4L7 9H3zm14.6 3 2.2-2.2-1.4-1.4-2.2 2.2-2.2-2.2-1.4 1.4 2.2 2.2-2.2 2.2 1.4 1.4 2.2-2.2 2.2 2.2 1.4-1.4-2.2-2.2z" fill="currentColor"/></svg>
+        </button>
+        <input id="audio-volume" type="range" min="0" max="100" value="60" aria-label="Volumen de la música">
+      </div>
+
+      <div class="quality-control">
+        <button id="quality-btn" class="icon-btn" type="button" aria-label="Calidad gráfica" aria-expanded="false" aria-haspopup="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L14.8 3h-4l-.5 2.6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.5 2.6h4l.5-2.6a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" fill="currentColor"/></svg>
+        </button>
+        <div id="quality-menu" role="menu" aria-label="Calidad gráfica" hidden>
+          <button type="button" role="menuitemradio" data-quality="low">Baja</button>
+          <button type="button" role="menuitemradio" data-quality="medium">Media</button>
+          <button type="button" role="menuitemradio" data-quality="high">Alta</button>
+          <button type="button" role="menuitemradio" data-quality="auto">Automática</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Defs SVG compartidos -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="seedGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#8a5a34"/>
+      <stop offset="100%" stop-color="#3f2814"/>
+    </radialGradient>
+    <linearGradient id="petalGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe27a"/>
+      <stop offset="100%" stop-color="#f2ab16"/>
+    </linearGradient>
+    <linearGradient id="petalGradB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd23f"/>
+      <stop offset="100%" stop-color="#e8940f"/>
+    </linearGradient>
+    <linearGradient id="petalGradC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff3b0"/>
+      <stop offset="100%" stop-color="#f7c948"/>
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9bb0"/>
+      <stop offset="100%" stop-color="#df3f5c"/>
+    </linearGradient>
+    <filter id="cloud-fluff" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="0.9"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="js/config.js"></script>
+<script src="js/quality.js"></script>
+<script src="js/flowers.js"></script>
+<script src="js/environment.js"></script>
+<script src="js/interactions.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

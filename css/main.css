@@ -1,0 +1,295 @@
+/* ================= main.css — base, variables, UI ================= */
+:root{
+  --sky-top:#4a9fd8;
+  --sky-mid:#7bc4ea;
+  --sky-horizon:#cdeaf5;
+  --sun-glow:#fff3c4;
+  --petal:#ffc83d;
+  --petal-shadow:#e8a412;
+  --petal-tip:#ffe27a;
+  --center:#6b4423;
+  --center-dark:#4a2e18;
+  --stem:#4f7f2f;
+  --stem-dark:#3a5f22;
+  --leaf:#5c9438;
+  --ground-1:#6fa83d;
+  --ground-2:#3f6b27;
+  --ground-3:#2c4e1b;
+  --cream:#fffdf6;
+  --ink:#1f2a1a;
+  --font: 'sunflower-ui', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* ambiente: el overlay los usa para la transición día→atardecer */
+  --sunset-dur: 90s;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+html,body{
+  height:100%;
+  width:100%;
+  overflow:hidden;
+  font-family:var(--font);
+  background:var(--sky-top);
+}
+
+body{
+  font-optical-sizing:auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+#app{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+}
+
+/* ================= utilidades ================= */
+.sr-only{
+  position:absolute;
+  width:1px; height:1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+}
+
+/* ================= overlay de ambiente ================= */
+#ambient-overlay{
+  position:absolute;
+  inset:0;
+  z-index:6;
+  pointer-events:none;
+  opacity:0;
+  background:
+    radial-gradient(ellipse 90% 60% at 78% 12%, rgba(255,176,102,0.55) 0%, transparent 60%),
+    linear-gradient(180deg,
+      rgba(94,63,160,0.35) 0%,
+      rgba(232,126,80,0.38) 45%,
+      rgba(255,170,90,0.30) 62%,
+      rgba(60,30,80,0.28) 100%);
+  transition: opacity var(--sunset-dur) linear;
+}
+#scene.amb-sunset #ambient-overlay{ opacity:0.85; }
+#scene.amb-final  #ambient-overlay{ opacity:1; }
+
+/* el sol baja y se torna cálido */
+.sun-glow{ transition: filter var(--sunset-dur) linear; }
+#scene.amb-sunset .sun-glow,
+#scene.amb-final  .sun-glow{
+  filter: blur(2px) sepia(0.6) saturate(1.8) hue-rotate(-18deg);
+}
+
+/* ================= hint de descubrimiento ================= */
+.hint{
+  position:absolute;
+  left:50%;
+  bottom:12%;
+  transform:translateX(-50%) translateY(8px);
+  z-index:15;
+  font-size:clamp(0.95rem, 2.8vw, 1.15rem);
+  color:var(--cream);
+  text-shadow:0 1px 8px rgba(20,35,10,0.6);
+  opacity:0;
+  transition: opacity 1.4s ease, transform 1.4s ease;
+  pointer-events:none;
+  text-align:center;
+  padding:0 1.5rem;
+}
+.hint.visible{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ================= tarjeta final ================= */
+#final-card{
+  position:absolute;
+  inset:0;
+  z-index:25;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  background:rgba(24,36,14,0.0);
+  transition: background 1.2s ease;
+}
+#final-card.show{ background:rgba(24,36,14,0.35); }
+#final-card[hidden]{ display:none; }
+
+.final-panel{
+  max-width:min(92vw, 34rem);
+  max-height:85vh;
+  max-height:85dvh;
+  overflow-y:auto;
+  text-align:center;
+  padding:clamp(1.6rem, 5vw, 2.8rem);
+  border-radius:22px;
+  background:linear-gradient(180deg, #fffdf6, #fdf3dd);
+  box-shadow:0 24px 60px -18px rgba(30,20,5,0.55), inset 0 1px 0 #ffffff;
+  opacity:0;
+  transform:translateY(18px) scale(0.97);
+  transition: opacity 1s ease, transform 1s ease;
+}
+#final-card.show .final-panel{ opacity:1; transform:none; }
+
+.final-panel h2{
+  font-size:clamp(1.4rem, 4.5vw, 2rem);
+  color:#4a2e18;
+  margin-bottom:0.9rem;
+}
+.final-panel p{
+  color:#5a4a2c;
+  line-height:1.65;
+  font-size:clamp(0.98rem, 3vw, 1.1rem);
+  white-space:pre-line;
+}
+#final-signature{
+  margin-top:1.1rem;
+  font-style:italic;
+  color:#8a6a3a;
+}
+.final-flower{
+  width:clamp(48px, 12vw, 72px);
+  margin-bottom:0.8rem;
+}
+
+.ghost-btn{
+  margin-top:1.4rem;
+  font-family:inherit;
+  font-size:0.95rem;
+  font-weight:600;
+  color:#6b4423;
+  background:transparent;
+  border:2px solid #d9c49a;
+  border-radius:999px;
+  padding:0.6em 1.6em;
+  cursor:pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+.ghost-btn:hover{ background:rgba(217,196,154,0.25); }
+
+/* ================= controles UI ================= */
+#ui-controls{
+  position:absolute;
+  z-index:20;
+  left:0; right:0; bottom:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  padding:0.8rem clamp(0.8rem, 3vw, 1.4rem);
+  padding-bottom:max(0.8rem, env(safe-area-inset-bottom));
+  pointer-events:none;
+}
+#ui-controls > *{ pointer-events:auto; }
+
+.audio-controls{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  background:rgba(20,35,14,0.42);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  padding:0.4rem 0.7rem;
+  border-radius:999px;
+}
+.icon-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,253,246,0.14);
+  color:var(--cream);
+  cursor:pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+.icon-btn:hover{ background:rgba(255,253,246,0.28); }
+.icon-btn:active{ transform:scale(0.94); }
+.icon-btn svg{ width:20px; height:20px; }
+
+/* estados de los iconos de audio */
+#audio-toggle .icon-pause,
+#audio-toggle.playing .icon-play{ display:none; }
+#audio-toggle.playing .icon-pause{ display:block; }
+#audio-mute .icon-muted,
+#audio-mute.muted .icon-vol{ display:none; }
+#audio-mute.muted .icon-muted{ display:block; }
+
+#audio-volume{
+  width:78px;
+  accent-color:var(--petal);
+  cursor:pointer;
+}
+
+/* selector de calidad */
+.quality-control{ position:relative; }
+#quality-menu{
+  position:absolute;
+  right:0;
+  bottom:calc(100% + 8px);
+  display:flex;
+  flex-direction:column;
+  min-width:130px;
+  background:rgba(20,35,14,0.85);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+#quality-menu button{
+  font-family:inherit;
+  font-size:0.92rem;
+  text-align:left;
+  padding:0.65rem 0.9rem;
+  background:transparent;
+  border:none;
+  color:var(--cream);
+  cursor:pointer;
+}
+#quality-menu button:hover{ background:rgba(255,253,246,0.12); }
+#quality-menu button[aria-checked="true"]{
+  color:var(--petal-tip);
+  font-weight:700;
+}
+#quality-menu button[aria-checked="true"]::before{
+  content:"● ";
+  font-size:0.7em;
+  vertical-align:middle;
+}
+
+/* foco visible en toda la experiencia */
+:focus-visible{
+  outline:3px solid var(--petal-tip);
+  outline-offset:3px;
+  border-radius:6px;
+}
+.start-btn:focus-visible{ outline-color:#2c4a1e; }
+
+/* capa de efectos (partículas de interacción) */
+#fx-layer{
+  position:absolute;
+  inset:0;
+  z-index:18;
+  pointer-events:none;
+  overflow:hidden;
+}
+.fx-petal{
+  position:absolute;
+  width:10px;
+  height:16px;
+  border-radius:60% 60% 60% 60% / 70% 70% 50% 50%;
+  background:linear-gradient(180deg, var(--petal-tip), var(--petal-shadow));
+  pointer-events:none;
+  will-change:transform, opacity;
+}
+
+/* destello mínimo junto a la flor especial */
+.fx-sparkle{
+  position:absolute;
+  top:0; left:0;
+  width:7px; height:7px;
+  border-radius:50%;
+  background:radial-gradient(circle, #fff6cf 0%, rgba(255,222,120,0.9) 40%, transparent 75%);
+  pointer-events:none;
+  will-change:transform, opacity;
+}

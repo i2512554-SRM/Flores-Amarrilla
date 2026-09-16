@@ -1,0 +1,39 @@
+/* ================= responsive.css — breakpoints y reduce-motion ================= */
+
+@media (min-width: 700px){
+  #scene{ --horizon:53%; --tperspective:620px; --altar-scale:1;
+          --altar-far:-1050px; --altar-mid:-560px; --altar-near:-330px; }
+  #sky{ height:58%; }
+  #field{ height:47%; perspective:640px; }
+}
+@media (min-width: 1100px){
+  #scene{ --horizon:51%; --tperspective:780px; --altar-scale:1.15;
+          --altar-far:-1250px; --altar-mid:-640px; --altar-near:-370px; }
+  #sky{ height:56%; }
+  #field{ height:49%; perspective:820px; }
+}
+
+/* teléfonos en horizontal: el intro no debe cortarse */
+@media (max-height: 480px){
+  #start-screen{ gap:0.9rem; padding:2vh 1.5rem; }
+  .mini-sunflower{ width:56px; }
+  .intro-copy h1{ font-size:1.4rem; }
+  .intro-copy p{ font-size:0.9rem; }
+  .hint{ bottom:22%; }
+  #audio-volume{ display:none; }
+}
+
+/* respeta reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .flower-inner, .tflower, .ground-plane, .heart-cloud, .particle,
+  .mini-sunflower, .big-heart, .bouquet, .special-flower::after,
+  .special-flower .special-svg,
+  .flower-tilt.tapped{
+    animation: none !important;
+  }
+  /* en modo estático cada flor recibe su translateZ desde JS */
+  .flower-inner{ transform: translateX(-50%) !important; }
+  #start-screen, #scene, .hint, .final-panel,
+  #final-card, .big-heart, .special-flower{ transition-duration:0.01s; }
+  #ambient-overlay, .sun-glow, .ground-horizon-fade{ transition:none; }
+}
