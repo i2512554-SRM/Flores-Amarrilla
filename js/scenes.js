@@ -139,6 +139,7 @@ function closeFinal(){
   els.finalCard.classList.remove("show");
   setTimeout(function(){ els.finalCard.hidden = true; }, 400);
   SF.environment.restore();
+  SF.audio.restoreVolume();
   els.special.disabled = false;
   els.special.classList.remove("chosen");
   state = "discovery";

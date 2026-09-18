@@ -40,7 +40,7 @@ window.EXPERIENCE_CONFIG = {
   /* Audio: coloca tu archivo en assets/audio/ y ajusta la ruta */
   audio: {
     enabled: true,
-    source: "assets/audio/music.mp3",
+    source: "assets/audio/Milo J - Niño (Letra).mp3",
     volume: 0.6,
     /* al encontrar la flor especial, la música baja suavemente a este nivel (0–1) */
     calmVolume: 0.35,
@@ -73,7 +73,7 @@ window.EXPERIENCE_CONFIG = {
      Los valores de profundidad finos se ajustan en css/field.css y responsive.css;
      aquí controlas el ritmo de la narrativa. */
   altar: {
-    approachDuration: 9000,  // duración del acercamiento al altar (ms)
+    approachDuration: 11250, // duración del acercamiento al altar (ms)
     revealDelay: 1200,       // pausa tras llegar el altar antes de revelar la flor
     farBlur: 1.4             // difuminado del altar cuando está lejos (px)
   },

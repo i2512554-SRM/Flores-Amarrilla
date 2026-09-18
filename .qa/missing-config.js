@@ -16,7 +16,7 @@ export const CONFIG = {
   quality: { default: 'auto', maximumFlowers: { mobile: 1100, desktop: 2100 } },
   sound: {
     volume: 0.18,
-    source: 'assets/audio/Milo J - Niño (Letra).mp3',
+    source: 'assets/audio/prueba-inexistente.mp3',
     musicVolume: 0.45,
     startOnEnter: true
   },
@@ -26,3 +26,4 @@ export const CONFIG = {
     { label: '03 / CASI AHÍ', title: 'Algunas cosas florecen para ti', hint: 'Despierta la última flor y sigue su luz.' }
   ]
 };
+

@@ -1,133 +1,181 @@
-/* ================= audio.js — música ambiental con Web Audio API =================
-   Los cambios de volumen (play/pause/cambio de escena) se hacen con rampas
-   exponenciales en un GainNode: sin cortes ni clics audibles.
-   Si el archivo no existe, los controles se ocultan y nada se rompe. */
+/* Música con un único control de volumen y pausa al salir de la página. */
 (function(){
 "use strict";
 window.SF = window.SF || {};
 
 var audio = null;
-var ctx = null, gainNode = null;   // Web Audio
-var pendingPlay = false;
-var baseVolume = 0.6;
+var userLevel = 0.6;
+var desiredPlaying = false;
+var started = false;
+var playPending = false;
+var playGeneration = 0;
+var pageHidden = false;
+var failed = false;
+var fadeTimer = null;
+var initialized = false;
 var els = {};
 
-function setPressed(btn, on){ btn.setAttribute("aria-pressed", on ? "true" : "false"); }
-
+function clamp(value){
+  var number = Number(value);
+  return Math.max(0, Math.min(1, Number.isFinite(number) ? number : 0));
+}
+function suspended(){ return document.hidden || pageHidden; }
+function setPressed(btn, on){
+  if (btn) btn.setAttribute("aria-pressed", on ? "true" : "false");
+}
 function syncUI(){
   if (!audio) return;
-  els.toggle.classList.toggle("playing", !audio.paused);
-  els.toggle.setAttribute("aria-label", audio.paused ? "Reproducir música" : "Pausar música");
-  setPressed(els.toggle, !audio.paused);
+  var playing = !audio.paused && !suspended();
+  els.toggle.classList.toggle("playing", playing);
+  els.toggle.setAttribute("aria-label", playing ? "Pausar música" : "Reproducir música");
+  setPressed(els.toggle, playing);
   els.mute.classList.toggle("muted", audio.muted);
+  els.mute.setAttribute("aria-label", audio.muted ? "Activar sonido" : "Silenciar música");
   setPressed(els.mute, audio.muted);
+  els.volume.value = Math.round(audio.volume * 100);
 }
-
-/* ---------- grafo de audio (se crea tras un gesto del usuario) ---------- */
-function ensureGraph(){
-  if (ctx || !audio) return;
-  var AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return; // fallback: se usa audio.volume directo
-  try{
-    ctx = new AC();
-    gainNode = ctx.createGain();
-    gainNode.gain.value = baseVolume;
-    ctx.createMediaElementSource(audio).connect(gainNode).connect(ctx.destination);
-  }catch(e){ ctx = null; gainNode = null; }
+function cancelFade(){
+  clearInterval(fadeTimer);
+  fadeTimer = null;
 }
-
-/* rampa de volumen: Web Audio si está disponible, si no, interpolación manual */
-function rampTo(target, seconds){
-  target = Math.max(0.0001, Math.min(1, target));
-  if (gainNode){
-    var now = ctx.currentTime;
-    gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(Math.max(0.0001, gainNode.gain.value), now);
-    gainNode.gain.exponentialRampToValueAtTime(target, now + seconds);
-  } else if (audio){
-    audio.volume = target;
-  }
+function applyVolume(value){
+  if (!audio) return;
+  audio.volume = clamp(value);
+  syncUI();
 }
-
+function transitionVolume(target, ms){
+  if (!audio) return;
+  cancelFade();
+  target = clamp(target);
+  var duration = Math.max(0, Number(ms) || 0);
+  var from = audio.volume;
+  if (!duration || Math.abs(target - from) < 0.001){ applyVolume(target); return; }
+  var began = Date.now();
+  fadeTimer = setInterval(function(){
+    var progress = Math.min(1, (Date.now() - began) / duration);
+    applyVolume(from + (target - from) * progress);
+    if (progress === 1) cancelFade();
+  }, 50);
+}
+function pausePlayback(){
+  playGeneration++;
+  playPending = false;
+  if (audio) audio.pause();
+  syncUI();
+}
 function tryPlay(){
-  if (!audio) return;
-  ensureGraph();
-  if (ctx && ctx.state === "suspended") ctx.resume().catch(function(){});
-  // fade-in desde silencio
-  if (gainNode) rampTo(0.0001, 0.01);
-  var p = audio.play();
-  if (p && p.catch) p.catch(function(){});
-  if (p && p.then) p.then(function(){ rampTo(baseVolume, 1.2); });
-}
-
-function softPause(){
-  if (!audio) return;
-  if (gainNode){
-    rampTo(0.0001, 0.6);
-    setTimeout(function(){ if (audio) audio.pause(); }, 650);
+  if (!audio || failed || !desiredPlaying || suspended() || !audio.paused || playPending) return;
+  var generation = ++playGeneration;
+  playPending = true;
+  var promise;
+  try { promise = audio.play(); }
+  catch (error){
+    playPending = false;
+    desiredPlaying = false;
+    syncUI();
+    return;
+  }
+  if (promise && promise.then){
+    promise.then(function(){
+      if (generation === playGeneration) playPending = false;
+      // Un play pendiente puede completarse después de ocultar o pausar.
+      if (!desiredPlaying || suspended()) audio.pause();
+      syncUI();
+    }, function(){
+      if (generation !== playGeneration) return;
+      playPending = false;
+      desiredPlaying = false;
+      syncUI();
+    });
   } else {
-    audio.pause();
+    playPending = false;
+    if (!desiredPlaying || suspended()) audio.pause();
+    syncUI();
   }
 }
-
 function init(){
+  if (initialized) return;
+  initialized = true;
   var cfg = EXPERIENCE_CONFIG.audio;
   els.controls = document.getElementById("audio-controls");
   els.toggle = document.getElementById("audio-toggle");
   els.mute = document.getElementById("audio-mute");
   els.volume = document.getElementById("audio-volume");
+  if (els.controls) els.controls.hidden = true;
+  if (!cfg.enabled || !els.controls || !els.toggle || !els.mute || !els.volume) return;
 
-  if (!cfg.enabled) return;
-
-  baseVolume = cfg.volume;
+  userLevel = clamp(cfg.volume);
   audio = new Audio();
   audio.preload = "metadata";
   audio.loop = true;
-  audio.volume = cfg.volume;
-  audio.src = cfg.source;
-
+  audio.volume = userLevel;
   audio.addEventListener("error", function(){
-    pendingPlay = false;
-    els.controls.hidden = true; // sin archivo: sin controles, sin errores
+    failed = true;
+    desiredPlaying = false;
+    cancelFade();
+    pausePlayback();
+    els.controls.hidden = true;
   });
   audio.addEventListener("loadedmetadata", function(){
+    if (failed) return;
     els.controls.hidden = false;
-    if (pendingPlay){ pendingPlay = false; tryPlay(); }
-  });
-
-  els.volume.value = Math.round(cfg.volume * 100);
-
-  els.toggle.addEventListener("click", function(){
-    if (!audio) return;
-    if (audio.paused) tryPlay(); else softPause();
-  });
-  els.mute.addEventListener("click", function(){
-    if (!audio) return;
-    audio.muted = !audio.muted;
-    syncUI();
-  });
-  els.volume.addEventListener("input", function(){
-    if (!audio) return;
-    baseVolume = els.volume.value / 100;
-    if (!audio.paused) rampTo(baseVolume, 0.15);
-    if (audio.muted && baseVolume > 0) audio.muted = false;
+    // No duplicar play si la petición del gesto aún está pendiente.
+    tryPlay();
     syncUI();
   });
   audio.addEventListener("play", syncUI);
   audio.addEventListener("pause", syncUI);
+  audio.addEventListener("volumechange", syncUI);
+
+  els.toggle.addEventListener("click", function(){
+    started = true;
+    desiredPlaying = !desiredPlaying;
+    if (desiredPlaying) tryPlay(); else pausePlayback();
+  });
+  els.mute.addEventListener("click", function(){
+    audio.muted = !audio.muted;
+    syncUI();
+  });
+  els.volume.addEventListener("input", function(){
+    // La elección manual prevalece sobre cualquier fundido narrativo pendiente.
+    cancelFade();
+    userLevel = clamp(els.volume.value / 100);
+    applyVolume(userLevel);
+    if (audio.muted && userLevel > 0) audio.muted = false;
+    syncUI();
+  });
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden) pausePlayback();
+    else tryPlay();
+  });
+  window.addEventListener("pagehide", function(){
+    pageHidden = true;
+    pausePlayback();
+  });
+  window.addEventListener("pageshow", function(){
+    pageHidden = false;
+    tryPlay();
+  });
+  // La ruta es relativa al HTML de cada alternativa.
+  audio.src = cfg.source;
+  syncUI();
 }
 
-/* llamado tras un gesto del usuario (botón "Ver el campo") */
+/* Se llama dentro del gesto inicial; repetir no reinicia ni fuerza la música. */
 function start(){
-  if (!audio) return;
-  pendingPlay = true;
+  if (!audio || started || failed) return;
+  started = true;
+  desiredPlaying = true;
   tryPlay();
 }
 
-/* cambio de etapa: fundido suave a otro nivel (sin detener la música) */
+/* Una escena puede bajar la música, sin superar el nivel elegido por el usuario. */
 function fadeTo(target, ms){
-  rampTo(target, Math.max(0.1, ms / 1000));
+  transitionVolume(Math.min(userLevel, clamp(target)), ms);
+}
+function restoreVolume(ms){
+  transitionVolume(userLevel, ms === undefined ? 1200 : ms);
 }
 
-SF.audio = { init: init, start: start, fadeTo: fadeTo };
+SF.audio = { init: init, start: start, fadeTo: fadeTo, restoreVolume: restoreVolume };
 })();

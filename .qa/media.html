@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#283326">
@@ -92,6 +93,48 @@
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
+<script>
+(function () {
+  var panel = document.createElement('aside');
+  panel.id = 'qa-media-panel';
+  panel.style.cssText = 'position:fixed;bottom:8px;left:8px;z-index:99999;width:min(550px,calc(100vw - 16px));max-height:175px;overflow:auto;padding:8px;background:rgba(12,18,12,.93);color:#efffe6;font:11px/1.4 monospace;border:1px solid #a6b895;border-radius:6px;pointer-events:auto';
+  var button = document.createElement('button');
+  button.id = 'qa-media-read';
+  button.type = 'button';
+  button.textContent = 'Leer estado de música';
+  button.style.cssText = 'font:inherit;color:#efffe6;background:#283326;border:1px solid #a6b895;border-radius:4px;padding:4px 6px;cursor:pointer';
+  var output = document.createElement('output');
+  output.id = 'qa-media-output';
+  output.style.cssText = 'display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:5px';
+  panel.appendChild(button);
+  panel.appendChild(output);
+  document.body.appendChild(panel);
+  function readState() {
+    var audio = document.getElementById('background-music');
+    if (!audio) {
+      output.textContent = JSON.stringify({audioCount:document.querySelectorAll('audio').length,hidden:document.hidden,missing:true});
+      return;
+    }
+    output.textContent = JSON.stringify({
+      currentSrc: audio.currentSrc,
+      duration: Number.isFinite(audio.duration) ? audio.duration : String(audio.duration),
+      currentTime: audio.currentTime,
+      paused: audio.paused,
+      readyState: audio.readyState,
+      volume: audio.volume,
+      loop: audio.loop,
+      errorCode: audio.error ? audio.error.code : null,
+      audioCount: document.querySelectorAll('audio').length,
+      hidden: document.hidden
+    });
+  }
+  button.addEventListener('click', readState);
+  readState();
+  setInterval(readState, 500);
+})();
+</script>
 <script id="experience-module" type="module" src="main.js?v=20260918-music"></script>
 </body>
 </html>
+
+

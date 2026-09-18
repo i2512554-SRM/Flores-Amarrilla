@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { createScene } from './scene3d.js';
 import { buildSunflowerField, windUniforms, pathCenter } from './sunflowerField.js';
-import { createSoundscape } from './audio3d.js';
-import { CONFIG } from './config3d.js';
+import { createSoundscape } from './audio3d.js?v=20260918-music';
+import { CONFIG } from './config3d.js?v=20260918-music';
 
 function initialize() {
   const $ = id => document.getElementById(id);
@@ -31,7 +31,9 @@ function initialize() {
   const field = buildSunflowerField(scene, {
     count: CONFIG.quality.maximumFlowers[mobile ? 'mobile' : 'desktop'], quality, reduceMotion
   });
-  const audio = createSoundscape(CONFIG.sound);
+  const audio = createSoundscape({
+    ...CONFIG.sound, musicElement: $('background-music'), onError: handleSoundError
+  });
   const discoveries = field.discoveries;
   const collected = new Set();
   const lookDesired = new THREE.Vector2();
@@ -47,6 +49,7 @@ function initialize() {
   const clock = new THREE.Clock();
   let state = 'intro', stop = 0, trip = null, paused = false;
   let activationDelay = null, elapsed = 0, soundEnabled = false, disposed = false, contextFailed = false;
+  let soundChoice = null, soundPending = false;
   let pointer = null, pointerNdcValid = false;
   let averageFrame = 1 / 60, sampleTime = 0, sampleFrames = 0;
 
@@ -169,6 +172,7 @@ function initialize() {
   }
 
   function enterField() {
+    if (CONFIG.sound.startOnEnter && soundChoice !== false && !soundEnabled) setSound(true);
     ui.start.disabled = true;
     ui.intro.classList.add('leaving');
     ui.intro.inert = true;
@@ -350,19 +354,35 @@ function initialize() {
     try { localStorage.setItem('sf3d-quality', qualityMode); } catch {}
     applyQuality(qualityMode === 'auto' ? automaticQuality() : qualityMode);
   });
-  ui.sound.addEventListener('click', async () => {
+  function handleSoundError() {
+    if (disposed || contextFailed) return;
+    soundEnabled = false;
+    ui.sound.textContent = 'Reintentar música';
+    ui.sound.setAttribute('aria-pressed', 'false');
+    const note = state === 'intro' ? $('loading-note') : ui.hint;
+    note.textContent = 'Puedes continuar y volver a activar la música con el botón de arriba.';
+  }
+
+  async function setSound(value, manual = false) {
+    if (disposed || contextFailed || soundPending) return;
+    if (manual) soundChoice = value;
+    soundPending = true;
     ui.sound.disabled = true;
     try {
-      soundEnabled = await audio.setEnabled(!soundEnabled);
-      ui.sound.textContent = soundEnabled ? 'Sonido: activado' : 'Sonido: apagado';
+      const actual = await audio.setEnabled(value);
+      if (disposed || contextFailed) return;
+      soundEnabled = actual;
+      if (value && !actual) { handleSoundError(); return; }
+      ui.sound.textContent = soundEnabled ? 'Música: activada' : 'Música: apagada';
       ui.sound.setAttribute('aria-pressed', String(soundEnabled));
-      if (soundEnabled) audio.chime(0);
-    } catch {
-      soundEnabled = false;
-      ui.sound.textContent = 'Sonido no disponible';
-      ui.sound.setAttribute('aria-pressed', 'false');
-    } finally { ui.sound.disabled = false; }
-  });
+    } catch { handleSoundError(); }
+    finally {
+      soundPending = false;
+      ui.sound.disabled = disposed || contextFailed;
+    }
+  }
+  ui.sound.addEventListener('click', () => setSound(!soundEnabled, true));
+  if (!CONFIG.sound.startOnEnter) ui.sound.textContent = 'Música: apagada';
 
   document.addEventListener('keydown', ev => {
     if (state === 'final') {
@@ -419,7 +439,7 @@ function initialize() {
   }
 
   function suspend() { renderer.setAnimationLoop(null); releasePointer(); audio.suspend().catch(() => {}); }
-  function resume() { if (!disposed && !contextFailed) { clock.getDelta(); renderer.setAnimationLoop(loop); audio.resume().catch(() => {}); } }
+  function resume() { if (!disposed && !contextFailed && !document.hidden) { clock.getDelta(); renderer.setAnimationLoop(loop); audio.resume().catch(handleSoundError); } }
   document.addEventListener('visibilitychange', () => { document.hidden ? suspend() : resume(); });
   motionPreference.addEventListener('change', ev => setMotion(ev.matches));
   canvas.addEventListener('webglcontextlost', ev => {
