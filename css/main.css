@@ -141,6 +141,8 @@ body{
   font-size:clamp(0.98rem, 3vw, 1.1rem);
   white-space:pre-line;
 }
+#final-message{ max-width:60ch; margin-inline:auto; text-align:left; }
+#final-message strong{ color:#6d451f; font-family:Georgia,serif; font-weight:700; }
 #final-signature{
   margin-top:1.1rem;
   font-style:italic;

@@ -48,6 +48,21 @@ function showHint(){
 }
 function hideHint(){ els.hint.classList.remove("visible"); }
 
+function renderLetter(element, text){
+  var parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  element.textContent = "";
+  parts.forEach(function(part){
+    if (!part) return;
+    if (part.indexOf("**") === 0 && part.slice(-2) === "**"){
+      var strong = document.createElement("strong");
+      strong.textContent = part.slice(2, -2);
+      element.appendChild(strong);
+    } else {
+      element.appendChild(document.createTextNode(part));
+    }
+  });
+}
+
 /* ---------- transiciones ---------- */
 function go(next){
   state = next;
@@ -121,7 +136,7 @@ function revealSpecialFlower(){
 /* ---------- tarjeta final ---------- */
 function showFinalCard(){
   els.finalTitle.textContent = cfg.finalMessage.title;
-  els.finalMsg.textContent = cfg.finalMessage.message;
+  renderLetter(els.finalMsg, cfg.finalMessage.message);
   els.finalSig.textContent = cfg.finalMessage.signature;
   els.finalClose.textContent = cfg.finalMessage.closeButton;
   els.finalCard.hidden = false;
@@ -129,7 +144,8 @@ function showFinalCard(){
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       els.finalCard.classList.add("show");
-      els.finalClose.focus();
+      els.finalCard.querySelector(".final-panel").scrollTop = 0;
+      els.finalTitle.focus({ preventScroll: true });
     });
   });
 }

@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { createScene } from './scene3d.js';
 import { buildSunflowerField, windUniforms, pathCenter } from './sunflowerField.js';
-import { createSoundscape } from './audio3d.js?v=20260918-music';
-import { CONFIG } from './config3d.js?v=20260918-music';
+import { createSoundscape } from './audio3d.js?v=20260920-letter';
+import { CONFIG } from './config3d.js?v=20260920-letter';
 
 function initialize() {
   const $ = id => document.getElementById(id);
@@ -216,11 +216,23 @@ function initialize() {
     if (reduceMotion) { trip = null; showFinal(); }
   }
 
+  function renderLetter(container, text) {
+    const fragments = String(text).split(/(\*\*[^*]+\*\*)/g);
+    container.replaceChildren(...fragments.filter(Boolean).map(fragment => {
+      if (fragment.startsWith('**') && fragment.endsWith('**')) {
+        const strong = document.createElement('strong');
+        strong.textContent = fragment.slice(2, -2);
+        return strong;
+      }
+      return document.createTextNode(fragment);
+    }));
+  }
+
   function showFinal() {
     state = 'final';
     const message = CONFIG.finalMessage;
     $('final-title').textContent = message.title;
-    $('final-message').textContent = message.message;
+    renderLetter($('final-message'), message.message);
     $('final-signature').textContent = message.signature;
     ui.close.textContent = message.closeButton;
     ui.toolbar.inert = true;
@@ -228,7 +240,9 @@ function initialize() {
     canvas.inert = true;
     ui.card.hidden = false;
     updateInterface();
-    ui.close.focus({ preventScroll: true });
+    const panel = ui.card.querySelector('.final-panel');
+    panel.scrollTop = 0;
+    $('final-title').focus({ preventScroll: true });
   }
 
   function closeFinal() {

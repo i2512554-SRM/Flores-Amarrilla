@@ -59,11 +59,13 @@ a { color: inherit; }
 .heart-hotspot .hotspot-ring { width: 64px; height: 64px; font-size: 39px; }
 @keyframes beacon { 50% { box-shadow: 0 0 0 13px #f5cd7208, 0 0 28px #f5cd7220; } }
 #final-card { z-index: 50; display: flex; align-items: center; justify-content: center; padding: 24px; background: #15251b70; backdrop-filter: blur(5px); pointer-events: auto; }
-.final-panel { width: min(100%,490px); max-height: calc(100dvh - 48px); overflow-y: auto; background: #fff8e9; color: #39432d; padding: clamp(28px,5vw,54px); border: 1px solid #d7bf8729; border-radius: 10px; text-align: center; box-shadow: 0 30px 90px #15201380; animation: letter-in .5s ease both; }
+.final-panel { width: min(100%,650px); max-height: calc(100dvh - 48px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; background: #fff8e9; color: #39432d; padding: clamp(28px,5vw,54px); border: 1px solid #d7bf8729; border-radius: 10px; text-align: center; box-shadow: 0 30px 90px #15201380; animation: letter-in .5s ease both; }
 .letter-symbol { display: block; color: #a57d3b; font-family: Georgia,serif; font-size: 48px; margin-bottom: 18px; }
 .final-panel .eyebrow { color: #8d743f; font-size: 9px; margin-bottom: 14px; }
 .final-panel h2 { margin: 0 0 22px; font-family: Georgia,serif; font-size: 44px; font-weight: 400; letter-spacing: -.04em; }
 .final-panel p:not(.eyebrow) { font-size: 15px; line-height: 1.9; white-space: pre-line; overflow-wrap: anywhere; }
+#final-message { max-width: 60ch; margin-inline: auto; text-align: left; }
+#final-message strong { color: #72561f; font-family: Georgia,serif; font-weight: 700; }
 #final-signature { margin: 22px 0 30px; color: #827348; font-family: Georgia,serif; font-style: italic; }
 .final-panel .start-btn { font-size: 12px; }
 .final-panel :focus-visible { outline-color: #8d743f; }
@@ -95,6 +97,8 @@ a { color: inherit; }
   .outline-btn { font-size: 11px; }
   .hotspot-ring { width: 48px; height: 48px; }
   #final-card { padding: max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom)); }
+  .final-panel { padding: 28px 22px; }
+  .final-panel p:not(.eyebrow) { font-size: 14px; line-height: 1.72; }
 }
 @media (max-width:360px) {
   .brand { font-size: 8px; gap: 5px; }

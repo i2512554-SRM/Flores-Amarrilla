@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#283326">
 <meta name="description" content="Sigue el sendero, despierta los girasoles y descubre un mensaje para ti.">
 <title>Un campo para ti · Girasoles</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20260920-letter">
 <script>
   // Disponible incluso si el módulo o el CDN no cargan.
   window.experienceFailed = function () {
@@ -81,7 +81,7 @@
     <div class="final-panel">
       <span class="letter-symbol" aria-hidden="true">♡</span>
       <p class="eyebrow">GUARDADO ENTRE GIRASOLES</p>
-      <h2 id="final-title">Para ti</h2>
+      <h2 id="final-title" tabindex="-1">Para ti</h2>
       <p id="final-message">Escribe aquí tu mensaje.</p>
       <p id="final-signature">— Con cariño</p>
       <button id="final-close" class="start-btn" type="button">Volver al campo</button>
@@ -92,6 +92,6 @@
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
-<script id="experience-module" type="module" src="main.js?v=20260918-music"></script>
+<script id="experience-module" type="module" src="main.js?v=20260920-letter"></script>
 </body>
 </html>
